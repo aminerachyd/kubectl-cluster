@@ -1,10 +1,7 @@
-use clap::Parser;
-use kubectl_cluster::{connect_to_cluster, Args};
+use std::io;
 
-fn main() {
-    let args = Args::parse();
+use kubectl_cluster::run;
 
-    let output = connect_to_cluster(args);
-
-    dbg!(output);
+fn main() -> Result<(), io::Error> {
+    run()
 }
