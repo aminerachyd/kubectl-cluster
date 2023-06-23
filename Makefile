@@ -1,4 +1,4 @@
-release:
+install:
 	cargo build --release && \
-	sudo cp target/release/kubectl-cluster /usr/local/bin/kubectl-cluster && \
-	sudo chmod a+x /usr/local/bin/kubectl-cluster
+	sudo cp target/release/oc-cluster /usr/local/bin/oc-cluster && \
+	sudo chmod a+x /usr/local/bin/oc-cluster

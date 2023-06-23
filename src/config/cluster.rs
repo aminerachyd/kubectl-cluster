@@ -1,12 +1,10 @@
+use super::cli_config::{write_config, CliConfig};
+use serde::{Deserialize, Serialize};
 use std::{
     io::{self, ErrorKind},
     os::unix::process::CommandExt,
     process::Command,
 };
-
-use serde::{Deserialize, Serialize};
-
-use super::cli_config::CliConfig;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Cluster {
@@ -15,22 +13,55 @@ pub struct Cluster {
     username: String,
 }
 
-pub fn find_cluster<'a>(name: &str, clusters: &'a Vec<Cluster>) -> Option<&'a Cluster> {
-    clusters.iter().find(|&c| c.name.eq(name))
+/**
+ * Adds or updates a cluster in the config file
+ *  - If the cluster doesn't exist, it adds it
+ *  - If the cluster already exists (checks the name), updates it's url and username
+ */
+pub fn add_cluster(
+    name: String,
+    url: String,
+    username: String,
+    mut cli_config: CliConfig,
+) -> Result<(), io::Error> {
+    let cluster_exists = find_cluster(&name, &mut cli_config.clusters);
+
+    if cluster_exists.is_some() {
+        let cluster = cluster_exists.unwrap();
+
+        cluster.url = url;
+
+        cluster.username = username;
+    } else {
+        let cluster = Cluster {
+            name: name.clone(),
+            url,
+            username,
+        };
+
+        cli_config.clusters.push(cluster);
+    }
+    cli_config = write_config(cli_config)?;
+
+    connect_to_cluster(name, cli_config)?;
+
+    Ok(())
 }
 
-fn add_cluster(c: Cluster, clusters: &mut Vec<Cluster>) {
-    clusters.push(c)
-}
-
-pub fn connect_to_cluster(cluster_name: String, cli_config: CliConfig) -> Result<(), io::Error> {
-    let cluster = find_cluster(&cluster_name, &cli_config.clusters);
+/**
+ * Fetches the cluster from the config file and connects to it
+ */
+pub fn connect_to_cluster(
+    cluster_name: String,
+    mut cli_config: CliConfig,
+) -> Result<(), io::Error> {
+    let cluster = find_cluster(&cluster_name, &mut cli_config.clusters);
 
     if cluster.is_none() {
         return Err(io::Error::new(
             ErrorKind::NotFound,
             format!(
-                "Cluster with name {} not found in config file",
+                "Cluster with name {} not found in config file, consider adding arguments --username and --cluster-url to save it",
                 cluster_name
             ),
         ));
@@ -38,12 +69,24 @@ pub fn connect_to_cluster(cluster_name: String, cli_config: CliConfig) -> Result
 
     let cluster = cluster.unwrap();
 
+    connect_command(cluster);
+
+    Ok(())
+}
+
+fn find_cluster<'a>(name: &str, clusters: &'a mut Vec<Cluster>) -> Option<&'a mut Cluster> {
+    clusters.iter_mut().find(|c| c.name.eq(name))
+}
+
+/**
+ * Command to connect to the cluster
+ * Uses `oc login`, perhaps use another method (login through rest api instead) ?
+ */
+fn connect_command(cluster: &Cluster) {
     Command::new("oc")
         .arg("login")
         .arg(&cluster.url)
         .arg("-u")
         .arg(&cluster.username)
         .exec();
-
-    Ok(())
 }

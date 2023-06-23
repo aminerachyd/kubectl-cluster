@@ -1,9 +1,7 @@
+use super::cluster::Cluster;
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io::{self, ErrorKind, Read, Write};
-
-use serde::{Deserialize, Serialize};
-
-use super::cluster::Cluster;
 
 #[derive(Serialize, Deserialize)]
 pub struct CliConfig {
@@ -11,7 +9,7 @@ pub struct CliConfig {
 }
 
 /**
- * Creates config under ~/.config/kubectl-cluster/clusters
+ * Creates config under ~/.config/oc-cluster/clusters
  */
 pub fn create_config() -> Result<CliConfig, io::Error> {
     let dir_create = fs::create_dir(get_config_dir());
@@ -25,7 +23,7 @@ pub fn create_config() -> Result<CliConfig, io::Error> {
         }
     }
 
-    let mut file = fs::File::create(get_config_file())?;
+    let mut file = fs::File::create(get_config_file_path())?;
 
     let cli_config = serde_yaml::to_string(&default_config()).unwrap();
 
@@ -41,7 +39,7 @@ pub fn create_config() -> Result<CliConfig, io::Error> {
 pub fn read_config() -> Result<CliConfig, io::Error> {
     let mut cli_config = String::new();
 
-    let file_open_result = fs::File::open(get_config_file());
+    let file_open_result = fs::File::open(get_config_file_path());
 
     match file_open_result {
         Err(e) => {
@@ -73,18 +71,31 @@ pub fn read_config() -> Result<CliConfig, io::Error> {
 }
 
 /**
+ * Updates the config file with a new config
+ * Will erase the previous config
+ */
+pub fn write_config(new_config: CliConfig) -> Result<CliConfig, io::Error> {
+    fs::write(
+        get_config_file_path(),
+        serde_yaml::to_string(&new_config).unwrap().as_bytes(),
+    )?;
+
+    Ok(new_config)
+}
+
+/**
  * Returns path of config dir
  */
 fn get_config_dir() -> String {
     let home = env!("HOME");
 
-    format!("{home}/.config/kubectl-cluster")
+    format!("{home}/.config/oc-cluster")
 }
 
 /**
  * Returns path of config file
  */
-fn get_config_file() -> String {
+fn get_config_file_path() -> String {
     format!("{}/clusters", get_config_dir())
 }
 

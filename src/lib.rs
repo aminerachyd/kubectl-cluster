@@ -1,5 +1,5 @@
 use clap::Parser;
-use config::cluster::connect_to_cluster;
+use config::cluster::{add_cluster, connect_to_cluster};
 use std::io::{self};
 
 mod config;
@@ -20,7 +20,18 @@ pub fn run() -> Result<(), io::Error> {
 
     let cli_config = config::cli_config::read_config()?;
 
-    connect_to_cluster(args.cluster_name, cli_config)?;
+    if args.cluster_url.is_some() && args.username.is_some() {
+        add_cluster(
+            args.cluster_name,
+            args.cluster_url.unwrap(),
+            args.username.unwrap(),
+            cli_config,
+        )?;
 
-    Ok(())
+        Ok(())
+    } else {
+        connect_to_cluster(args.cluster_name, cli_config)?;
+
+        Ok(())
+    }
 }
