@@ -13,6 +13,9 @@ pub struct Args {
 
     #[arg(short, long)]
     username: Option<String>,
+
+    #[arg(short, long)]
+    output: Option<String>,
 }
 
 pub fn run() -> Result<(), io::Error> {
@@ -21,7 +24,7 @@ pub fn run() -> Result<(), io::Error> {
     let cli_config = config::cli_config::read_config()?;
 
     if args.cluster_name == "list" {
-        list_clusters(false, cli_config)?
+        list_clusters(args.output, cli_config)?
     } else if args.cluster_url.is_some() && args.username.is_some() {
         add_cluster(
             args.cluster_name,

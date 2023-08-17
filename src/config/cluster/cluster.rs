@@ -77,21 +77,29 @@ pub fn connect_to_cluster(
 /**
  * Lists all clusters
  */
-pub fn list_clusters(wide: bool, cli_config: CliConfig) -> Result<(), io::Error> {
+pub fn list_clusters(format: Option<String>, cli_config: CliConfig) -> Result<(), io::Error> {
     let clusters = cli_config.clusters;
 
     clusters.iter().for_each(|c| {
-        println!("{}", format_clusters_print(wide, c));
+        println!("{}", format_clusters_print(format.clone(), c));
     });
 
     Ok(())
 }
 
-fn format_clusters_print(wide: bool, cluster: &Cluster) -> String {
-    if wide == true {
-        format!("{}\t{}\t{}", cluster.name, cluster.username, cluster.url)
-    } else {
-        format!("{}", cluster.name)
+fn format_clusters_print(format: Option<String>, cluster: &Cluster) -> String {
+    match format {
+        Some(format) => match format.as_str() {
+            "wide" => {
+                format!("{}\t{}\t{}", cluster.name, cluster.username, cluster.url)
+            }
+            _ => {
+                format!("{}", cluster.name)
+            }
+        },
+        None => {
+            format!("{}", cluster.name)
+        }
     }
 }
 
