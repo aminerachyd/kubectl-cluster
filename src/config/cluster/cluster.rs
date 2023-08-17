@@ -1,4 +1,4 @@
-use super::cli_config::{write_config, CliConfig};
+use crate::config::cli_config::{write_config, CliConfig};
 use serde::{Deserialize, Serialize};
 use std::{
     io::{self, ErrorKind},
@@ -72,6 +72,27 @@ pub fn connect_to_cluster(
     connect_command(cluster);
 
     Ok(())
+}
+
+/**
+ * Lists all clusters
+ */
+pub fn list_clusters(wide: bool, cli_config: CliConfig) -> Result<(), io::Error> {
+    let clusters = cli_config.clusters;
+
+    clusters.iter().for_each(|c| {
+        println!("{}", format_clusters_print(wide, c));
+    });
+
+    Ok(())
+}
+
+fn format_clusters_print(wide: bool, cluster: &Cluster) -> String {
+    if wide == true {
+        format!("{}\t{}\t{}", cluster.name, cluster.username, cluster.url)
+    } else {
+        format!("{}", cluster.name)
+    }
 }
 
 fn find_cluster<'a>(name: &str, clusters: &'a mut Vec<Cluster>) -> Option<&'a mut Cluster> {

@@ -1,7 +1,8 @@
-use super::cluster::Cluster;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io::{self, ErrorKind, Read, Write};
+
+use super::cluster::cluster::Cluster;
 
 #[derive(Serialize, Deserialize)]
 pub struct CliConfig {
