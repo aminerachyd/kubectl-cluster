@@ -94,6 +94,11 @@ pub fn list_clusters(format: Option<String>, cli_config: CliConfig) -> Result<()
     Ok(())
 }
 
+pub fn delete_cluster(cluster_name: String, mut cli_config: CliConfig) -> Result<(), io::Error> {
+    dbg!("Should delete cluster {}", cluster_name);
+    unimplemented!()
+}
+
 fn print_clusters_table(clusters: &Vec<Cluster>) {
     let table_headers = ("CLUSTERNAME", "USERNAME", "URL");
 

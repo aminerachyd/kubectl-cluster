@@ -1,5 +1,5 @@
 use clap::Parser;
-use config::cluster::cluster::{add_cluster, connect_to_cluster, list_clusters};
+use config::cluster::cluster::{add_cluster, connect_to_cluster, delete_cluster, list_clusters};
 use std::io::{self};
 
 mod config;
@@ -16,6 +16,9 @@ pub struct Args {
 
     #[arg(short, long)]
     output: Option<String>,
+
+    #[arg(short, long)]
+    delete: bool,
 }
 
 pub fn run() -> Result<(), io::Error> {
@@ -32,6 +35,8 @@ pub fn run() -> Result<(), io::Error> {
             args.username.unwrap(),
             cli_config,
         )?
+    } else if args.delete == true {
+        delete_cluster(args.cluster_name, cli_config)?
     } else {
         connect_to_cluster(args.cluster_name, cli_config)?
     }
