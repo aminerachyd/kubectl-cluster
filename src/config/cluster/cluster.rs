@@ -1,4 +1,5 @@
 use crate::config::cli_config::{write_config, CliConfig};
+use prettytable::{format::TableFormat, Cell, Row, Table};
 use serde::{Deserialize, Serialize};
 use std::{
     io::{self, ErrorKind},
@@ -80,27 +81,45 @@ pub fn connect_to_cluster(
 pub fn list_clusters(format: Option<String>, cli_config: CliConfig) -> Result<(), io::Error> {
     let clusters = cli_config.clusters;
 
-    clusters.iter().for_each(|c| {
-        println!("{}", format_clusters_print(format.clone(), c));
-    });
+    match format {
+        Some(format) => match format.as_str() {
+            "wide" => print_clusters_table(&clusters),
+            _ => {
+                unimplemented!();
+            }
+        },
+        _ => print_clusters_table(&clusters),
+    }
 
     Ok(())
 }
 
-fn format_clusters_print(format: Option<String>, cluster: &Cluster) -> String {
-    match format {
-        Some(format) => match format.as_str() {
-            "wide" => {
-                format!("{}\t{}\t{}", cluster.name, cluster.username, cluster.url)
-            }
-            _ => {
-                format!("{}", cluster.name)
-            }
-        },
-        None => {
-            format!("{}", cluster.name)
-        }
-    }
+fn print_clusters_table(clusters: &Vec<Cluster>) {
+    let table_headers = ("CLUSTERNAME", "USERNAME", "URL");
+
+    let mut table = Table::new();
+
+    let mut table_format = TableFormat::new();
+
+    table_format.padding(0, 2);
+
+    table.set_format(table_format);
+
+    table.add_row(Row::new(vec![
+        Cell::new(table_headers.0),
+        Cell::new(table_headers.1),
+        Cell::new(table_headers.2),
+    ]));
+
+    clusters.iter().for_each(|c| {
+        table.add_row(Row::new(vec![
+            Cell::new(&c.name),
+            Cell::new(&c.username),
+            Cell::new(&c.url),
+        ]));
+    });
+
+    table.printstd();
 }
 
 fn find_cluster<'a>(name: &str, clusters: &'a mut Vec<Cluster>) -> Option<&'a mut Cluster> {
