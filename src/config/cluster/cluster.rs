@@ -95,8 +95,22 @@ pub fn list_clusters(format: Option<String>, cli_config: CliConfig) -> Result<()
 }
 
 pub fn delete_cluster(cluster_name: String, mut cli_config: CliConfig) -> Result<(), io::Error> {
-    dbg!("Should delete cluster {}", cluster_name);
-    unimplemented!()
+    let clusters = &mut cli_config.clusters;
+
+    let index_to_remove = clusters.iter().position(|c| c.name == cluster_name);
+
+    match index_to_remove {
+        Some(index) => {
+            println!("Removing cluster [{}]", cluster_name);
+            clusters.remove(index);
+            write_config(cli_config)?;
+        }
+        None => {
+            println!("Cluster [{}] doesn't exist", cluster_name);
+        }
+    }
+
+    Ok(())
 }
 
 fn print_clusters_table(clusters: &Vec<Cluster>) {
