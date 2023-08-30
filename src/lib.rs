@@ -1,5 +1,8 @@
 use clap::Parser;
-use config::cluster::cluster::{add_cluster, connect_to_cluster, delete_cluster, list_clusters};
+use config::{
+    cli_config::edit_config_in_editor,
+    cluster::cluster::{add_cluster, connect_to_cluster, delete_cluster, list_clusters},
+};
 use std::io::{self};
 
 mod config;
@@ -28,6 +31,8 @@ pub fn run() -> Result<(), io::Error> {
 
     if args.cluster_name == "list" {
         list_clusters(args.output, cli_config)?
+    } else if args.cluster_name == "edit" {
+        edit_config_in_editor()?
     } else if args.cluster_url.is_some() && args.username.is_some() {
         add_cluster(
             args.cluster_name,

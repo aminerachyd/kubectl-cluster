@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
-use std::fs;
 use std::io::{self, ErrorKind, Read, Write};
+use std::os::unix::process::CommandExt;
+use std::{env, fs, process};
 
 use super::cluster::cluster::Cluster;
 
@@ -82,6 +83,26 @@ pub fn write_config(new_config: CliConfig) -> Result<CliConfig, io::Error> {
     )?;
 
     Ok(new_config)
+}
+
+/**
+ * Opens config file in editor
+ */
+pub fn edit_config_in_editor() -> Result<(), io::Error> {
+    let editor = env::var("EDITOR");
+    let editor_unwrapped: String;
+
+    if editor.is_ok() {
+        editor_unwrapped = editor.unwrap();
+    } else {
+        editor_unwrapped = "vi".to_string();
+    }
+
+    process::Command::new(editor_unwrapped)
+        .arg(self::get_config_file_path())
+        .exec();
+
+    Ok(())
 }
 
 /**

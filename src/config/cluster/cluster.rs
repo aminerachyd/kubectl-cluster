@@ -12,6 +12,7 @@ pub struct Cluster {
     name: String,
     url: String,
     username: String,
+    comment: String,
 }
 
 /**
@@ -38,6 +39,7 @@ pub fn add_cluster(
             name: name.clone(),
             url,
             username,
+            comment: "".to_owned(),
         };
 
         cli_config.clusters.push(cluster);
@@ -94,6 +96,9 @@ pub fn list_clusters(format: Option<String>, cli_config: CliConfig) -> Result<()
     Ok(())
 }
 
+/**
+ * Deletes cluster with name if it exists in config
+ */
 pub fn delete_cluster(cluster_name: String, mut cli_config: CliConfig) -> Result<(), io::Error> {
     let clusters = &mut cli_config.clusters;
 
@@ -114,7 +119,7 @@ pub fn delete_cluster(cluster_name: String, mut cli_config: CliConfig) -> Result
 }
 
 fn print_clusters_table(clusters: &Vec<Cluster>) {
-    let table_headers = ("CLUSTERNAME", "USERNAME", "URL");
+    let table_headers = ("CLUSTER NAME", "USERNAME", "URL", "COMMENT");
 
     let mut table = Table::new();
 
@@ -128,6 +133,7 @@ fn print_clusters_table(clusters: &Vec<Cluster>) {
         Cell::new(table_headers.0),
         Cell::new(table_headers.1),
         Cell::new(table_headers.2),
+        Cell::new(table_headers.3),
     ]));
 
     clusters.iter().for_each(|c| {
@@ -135,6 +141,7 @@ fn print_clusters_table(clusters: &Vec<Cluster>) {
             Cell::new(&c.name),
             Cell::new(&c.username),
             Cell::new(&c.url),
+            Cell::new(&c.comment),
         ]));
     });
 
