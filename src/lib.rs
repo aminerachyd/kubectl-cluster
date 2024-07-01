@@ -22,6 +22,9 @@ pub struct Args {
 
     #[arg(short, long)]
     delete: bool,
+
+    #[arg(short, long)]
+    password: bool,
 }
 
 pub fn run() -> Result<(), io::Error> {
@@ -39,11 +42,12 @@ pub fn run() -> Result<(), io::Error> {
             args.cluster_url.unwrap(),
             args.username.unwrap(),
             cli_config,
+            args.password,
         )?
     } else if args.delete == true {
         delete_cluster(args.cluster_name, cli_config)?
     } else {
-        connect_to_cluster(args.cluster_name, cli_config)?
+        connect_to_cluster(args.cluster_name, cli_config, args.password)?
     }
 
     Ok(())

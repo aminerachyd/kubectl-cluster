@@ -25,6 +25,7 @@ pub fn add_cluster(
     url: String,
     username: String,
     mut cli_config: CliConfig,
+    password: bool,
 ) -> Result<(), io::Error> {
     let cluster_exists = find_cluster(&name, &mut cli_config.clusters);
 
@@ -46,7 +47,7 @@ pub fn add_cluster(
     }
     cli_config = write_config(cli_config)?;
 
-    connect_to_cluster(name, cli_config)?;
+    connect_to_cluster(name, cli_config, password)?;
 
     Ok(())
 }
@@ -57,6 +58,7 @@ pub fn add_cluster(
 pub fn connect_to_cluster(
     cluster_name: String,
     mut cli_config: CliConfig,
+    password: bool
 ) -> Result<(), io::Error> {
     let cluster = find_cluster(&cluster_name, &mut cli_config.clusters);
 
@@ -72,7 +74,7 @@ pub fn connect_to_cluster(
 
     let cluster = cluster.unwrap();
 
-    connect_command(cluster);
+    connect_command(cluster, password);
 
     Ok(())
 }
@@ -156,11 +158,15 @@ fn find_cluster<'a>(name: &str, clusters: &'a mut Vec<Cluster>) -> Option<&'a mu
  * Command to connect to the cluster
  * Uses `oc login`, perhaps use another method (login through rest api instead) ?
  */
-fn connect_command(cluster: &Cluster) {
-    Command::new("oc")
-        .arg("login")
-        .arg(&cluster.url)
-        .arg("-u")
-        .arg(&cluster.username)
-        .exec();
+fn connect_command(cluster: &Cluster, password: bool) {
+    let mut cmd = Command::new("oc");
+
+    cmd.arg("login") .arg(&cluster.url);
+    if password {
+        cmd.arg("-u").arg(&cluster.username);
+    } else {
+        cmd.arg("--web");
+    }
+
+    cmd.exec();
 }
